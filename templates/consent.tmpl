@@ -1,0 +1,87 @@
+{{ define "consent.tmpl" }}
+<html>
+    <head>
+        <title>授权确认</title>
+        {{ template "head.tmpl" }}
+        <style>
+            p.remember, p.remember > * {
+                cursor: pointer;
+            }
+
+            input#remember {
+                height: 16px;
+                width: 16px;
+                color: #62b6e7;
+                border-radius: 6px;
+            }
+
+            p.buttons {
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                gap: 2rem;
+            }
+
+            button {
+                display: flex;
+                flex-grow: 1;
+                padding: 8px 24px;
+                cursor: pointer;
+                border-radius: 8px;
+                border: none;
+                font-size: 1.2rem;
+                color: white;
+                justify-content: center;
+                transition: background-color .2s;
+            }
+
+            button.reject {
+                background: #dc2626;
+            }
+            button.reject:hover {
+                background: #b91c1c;
+            }
+
+            button.accept {
+                background: #16a34a;
+            }
+            button.accept:hover {
+                background: #15803d;
+            }
+
+            #app-name, #user-name {
+                color: #62b6e7;
+            }
+        </style>
+    </head>
+    <body>
+        <form id="main" action="/consent" method="POST">
+            <input type="hidden" name="_csrf" value="{{ .csrf }}" />
+
+            {{ if .client.LogoUri }}
+                <img src="{{ .client.LogoUri }}" alt="{{ .client.ClientId }}" width="120" height="120" />
+            {{ else }}
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 48 48"><title>c-warning</title><g><path fill="#EFD358" d="M24,1C11.31787,1,1,11.31787,1,24s10.31787,23,23,23s23-10.31787,23-23S36.68213,1,24,1z"></path> <path fill="#FFFFFF" d="M24,28c0.55225,0,1-0.44775,1-1V14c0-0.55225-0.44775-1-1-1s-1,0.44775-1,1v13 C23,27.55225,23.44775,28,24,28z"></path> <circle fill="#FFFFFF" cx="24" cy="33" r="2"></circle></g></svg>
+            {{ end }}
+
+            <p>
+                应用程序
+                <span id="app-name">{{ .client.ClientName }}</span>
+                正请求读取
+                <span id="user-name">{{ .user.Name }}</span>
+                的信息
+            </p>
+
+            <p class="remember">
+                <input type="checkbox" id="remember" name="remember" value="true" />
+                <label for="remember">记住我的选择</label>
+            </p>
+
+            <p class="buttons">
+                <button type="submit" name="action" value="reject" class="reject">拒绝</button>
+                <button type="submit" name="action" value="accept" class="accept">接受</button>
+            </p>
+        </form>
+    </body>
+</html>
+{{ end }}

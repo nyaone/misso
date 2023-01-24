@@ -1,0 +1,9 @@
+system:
+  debug: true
+  redis: "redis://localhost:6379/0"
+misskey:
+  instance: ""
+  application:
+    secret: ""
+hydra:
+  admin_url: "http://localhost:4445"

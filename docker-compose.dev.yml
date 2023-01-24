@@ -1,0 +1,42 @@
+version: "3.7"
+
+services:
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nyaone
+      POSTGRES_PASSWORD: "misso+nya.1"
+      POSTGRES_DB: hydra
+      POSTGRES_INITDB_ARGS: "--encoding='UTF8' --lc-collate='C' --lc-ctype='C'"
+    ports:
+      - 127.0.0.1:5432:5432
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:6379:6379
+
+  hydra:
+    image: oryd/hydra
+    depends_on:
+      - db
+      - hydra-migrate
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4444:4444" # Public port
+      - "127.0.0.1:4445:4445" # Admin port
+      - "127.0.0.1:5555:5555" # Port for hydra token user
+    volumes:
+      - ./.config/hydra.yml:/etc/config/hydra/hydra.yml
+    command: serve -c /etc/config/hydra/hydra.yml all --dev
+
+  hydra-migrate:
+    image: oryd/hydra
+    depends_on:
+      - db
+    volumes:
+      - ./.config/hydra.yml:/etc/config/hydra/hydra.yml
+    command: migrate -c /etc/config/hydra/hydra.yml sql -e --yes
