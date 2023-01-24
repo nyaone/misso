@@ -11,13 +11,13 @@ services:
       POSTGRES_DB: hydra
       POSTGRES_INITDB_ARGS: "--encoding='UTF8' --lc-collate='C' --lc-ctype='C'"
     ports:
-      - 127.0.0.1:5432:5432
+      - "127.0.0.1:5432:5432"
 
   redis:
     image: redis:alpine
     restart: unless-stopped
     ports:
-      - 127.0.0.1:6379:6379
+      - "127.0.0.1:6379:6379"
 
   hydra:
     image: oryd/hydra
