@@ -93,12 +93,21 @@ func ConsentCheck(ctx *gin.Context) {
 
 		// Show the consent UI
 		global.Logger.Debugf("Rendering consent UI...")
-		ctx.HTML(http.StatusOK, "consent.tmpl", gin.H{
-			"client":    consentReq.Client,
+		templateFields := gin.H{
 			"user":      acceptCtx.User,
 			"challenge": oauth2challenge,
 			"csrf":      csrf,
-		})
+		}
+
+		if consentReq.Client.LogoUri != nil && *consentReq.Client.LogoUri != "" {
+			templateFields["logo"] = *consentReq.Client.LogoUri
+		}
+		if consentReq.Client.ClientName != nil && *consentReq.Client.ClientName != "" {
+			templateFields["clientName"] = *consentReq.Client.ClientName
+		} else {
+			templateFields["clientName"] = *consentReq.Client.ClientId
+		}
+		ctx.HTML(http.StatusOK, "consent.tmpl", templateFields)
 
 		global.Logger.Debugf("User should now see Consent UI.")
 	}
