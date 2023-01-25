@@ -82,9 +82,9 @@ func ConsentConfirm(ctx *gin.Context) {
 		global.Logger.Debugf("User accepted the request, reporting back to hydra...")
 		// Retrieve context
 		global.Logger.Debugf("Retrieving context...")
-		var acceptCtx types.SessionContext
+		var userinfoCtx types.SessionContext
 		sessKey = fmt.Sprintf(consts.REDIS_KEY_SHARE_CONTEXT, *consentReq.Subject)
-		acceptCtxBytes, err := global.Redis.Get(context.Background(), sessKey).Bytes()
+		userinfoCtxBytes, err := global.Redis.Get(context.Background(), sessKey).Bytes()
 		if err != nil {
 			global.Logger.Errorf("Failed to retrieve context with error: %v", err)
 			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
@@ -94,7 +94,7 @@ func ConsentConfirm(ctx *gin.Context) {
 		}
 
 		global.Logger.Debugf("Decoding context...")
-		err = json.Unmarshal(acceptCtxBytes, &acceptCtx)
+		err = json.Unmarshal(userinfoCtxBytes, &userinfoCtx)
 		if err != nil {
 			global.Logger.Errorf("Failed to parse context with error: %v", err)
 			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{

@@ -66,7 +66,7 @@ func MisskeyAuthCallback(ctx *gin.Context) {
 	userid := fmt.Sprintf("%s@%s", usermeta.User.Username, config.Config.Misskey.Instance)
 
 	// Save context into redis
-	acceptCtxBytes, err := json.Marshal(&types.SessionContext{
+	userinfoCtxBytes, err := json.Marshal(&types.SessionContext{
 		MisskeyToken: usermeta.AccessToken,
 		User:         usermeta.User,
 	})
@@ -78,7 +78,7 @@ func MisskeyAuthCallback(ctx *gin.Context) {
 		return
 	}
 	sessKey = fmt.Sprintf(consts.REDIS_KEY_SHARE_CONTEXT, userid)
-	err = global.Redis.Set(context.Background(), sessKey, acceptCtxBytes, consts.TIME_LOGIN_SESSION_VALID).Err()
+	err = global.Redis.Set(context.Background(), sessKey, userinfoCtxBytes, consts.TIME_LOGIN_SESSION_VALID).Err()
 	if err != nil {
 		global.Logger.Errorf("Failed to save session into redis with error: %v", err)
 		ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
