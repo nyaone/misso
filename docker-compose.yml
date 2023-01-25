@@ -44,7 +44,7 @@ services:
     depends_on:
       - db
       - hydra-migrate
-    restart: unless-stopped
+    restart: always
     ports:
       - "127.0.0.1:4444:4444" # Public port
     networks:
