@@ -21,6 +21,7 @@ FROM alpine:latest AS Runner
 
 WORKDIR /app
 
+COPY templates ./templates
 COPY --from=Builder /app/misso /app/app
 
 # This container exposes port 8080 to the outside world
