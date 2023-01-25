@@ -12,6 +12,11 @@ import (
 	"strings"
 )
 
+type UserinfoResponse struct {
+	types.MisskeyUser
+	EMail string `json:"email"`
+}
+
 func UserInfo(ctx *gin.Context) {
 	// Get token from header
 	accessToken := strings.Replace(ctx.GetHeader("Authorization"), "Bearer ", "", 1)
@@ -65,9 +70,9 @@ func UserInfo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"email": tokenInfo.Sub,
-		"user":  acceptCtx.User,
+	ctx.JSON(http.StatusOK, UserinfoResponse{
+		MisskeyUser: acceptCtx.User,
+		EMail:       *tokenInfo.Sub,
 	})
 
 }
