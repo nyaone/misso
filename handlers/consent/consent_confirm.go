@@ -8,6 +8,7 @@ import (
 	"misso/consts"
 	"misso/global"
 	"net/http"
+	"time"
 )
 
 type ConsentConfirmRequest struct {
@@ -79,7 +80,7 @@ func ConsentConfirm(ctx *gin.Context) {
 		global.Logger.Debugf("User accepted the request, reporting back to hydra...")
 
 		global.Logger.Debugf("Initializing ID Token...")
-		rememberFor := int64(0) // Remember forever
+		rememberFor := int64(consts.TIME_CONSENT_REMEMBER / time.Second) // Remember forever
 		acceptReq, _, err := global.Hydra.Admin.OAuth2Api.AcceptOAuth2ConsentRequest(context.Background()).ConsentChallenge(oauth2challenge).AcceptOAuth2ConsentRequest(client.AcceptOAuth2ConsentRequest{
 			GrantScope:               consentReq.RequestedScope, // TODO: Specify scopes
 			GrantAccessTokenAudience: consentReq.RequestedAccessTokenAudience,
