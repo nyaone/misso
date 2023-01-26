@@ -2,7 +2,6 @@ package login
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	client "github.com/ory/hydra-client-go/v2"
@@ -10,7 +9,7 @@ import (
 	"misso/consts"
 	"misso/global"
 	"misso/misskey"
-	"misso/types"
+	"misso/utils"
 	"net/http"
 	"time"
 )
@@ -65,31 +64,29 @@ func MisskeyAuthCallback(ctx *gin.Context) {
 
 	userid := fmt.Sprintf("%s@%s", usermeta.User.Username, config.Config.Misskey.Instance)
 
-	// Save context into redis
-	userinfoCtxBytes, err := json.Marshal(&types.SessionContext{
-		MisskeyToken: usermeta.AccessToken,
-		User:         usermeta.User,
-	})
+	sessAccessTokenKey := fmt.Sprintf(consts.REDIS_KEY_SHARE_ACCESS_TOKEN, userid)
+	err = global.Redis.Set(context.Background(), sessAccessTokenKey, usermeta.AccessToken, 0).Err()
 	if err != nil {
-		global.Logger.Errorf("Failed to parse accept context with error: %v", err)
-		ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
-			"error": "Failed to parse accept context",
-		})
-		return
-	}
-	sessKey = fmt.Sprintf(consts.REDIS_KEY_SHARE_CONTEXT, userid)
-	err = global.Redis.Set(context.Background(), sessKey, userinfoCtxBytes, consts.TIME_LOGIN_SESSION_VALID).Err()
-	if err != nil {
-		global.Logger.Errorf("Failed to save session into redis with error: %v", err)
+		global.Logger.Errorf("Failed to save session access token into redis with error: %v", err)
 		ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
 			"error": "Failed to save context",
 		})
 		return
 	}
 
+	// Save context into redis
+	err = utils.SaveUserinfo(userid, &usermeta.User)
+	if err != nil {
+		global.Logger.Errorf("Failed to save session user info into redis with error: %v", err)
+		ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
+			"error": "Failed to save userinfo",
+		})
+		return
+	}
+
 	global.Logger.Debugf("User accepted the request, reporting back to hydra...")
 	remember := true
-	rememberFor := int64(consts.TIME_LOGIN_SESSION_VALID / time.Second)
+	rememberFor := int64(consts.TIME_LOGIN_REMEMBER / time.Second)
 	acceptReq, _, err := global.Hydra.Admin.OAuth2Api.AcceptOAuth2LoginRequest(context.Background()).LoginChallenge(oauth2challenge).AcceptOAuth2LoginRequest(client.AcceptOAuth2LoginRequest{
 		Subject:     userid,
 		Remember:    &remember,

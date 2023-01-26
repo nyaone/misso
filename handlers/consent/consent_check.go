@@ -2,13 +2,11 @@ package consent
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	client "github.com/ory/hydra-client-go/v2"
 	"misso/consts"
 	"misso/global"
-	"misso/types"
 	"misso/utils"
 	"net/http"
 )
@@ -59,7 +57,7 @@ func ConsentCheck(ctx *gin.Context) {
 		global.Logger.Debugf("Generating CSRF token...")
 		csrf := utils.RandString(32)
 		sessKey := fmt.Sprintf(consts.REDIS_KEY_CONSENT_CSRF, csrf)
-		err := global.Redis.Set(context.Background(), sessKey, oauth2challenge, consts.TIME_CONSENT_REQUEST_VALID).Err()
+		err := global.Redis.Set(context.Background(), sessKey, oauth2challenge, consts.TIME_REQUEST_VALID).Err()
 		if err != nil {
 			global.Logger.Errorf("Failed to save csrf into redis with error: %v", err)
 			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
@@ -70,23 +68,12 @@ func ConsentCheck(ctx *gin.Context) {
 
 		// Retrieve context
 		global.Logger.Debugf("Retrieving context...")
-		var userinfoCtx types.SessionContext
-		sessKey = fmt.Sprintf(consts.REDIS_KEY_SHARE_CONTEXT, *consentReq.Subject)
-		userinfoCtxBytes, err := global.Redis.Get(context.Background(), sessKey).Bytes()
-		if err != nil {
-			global.Logger.Errorf("Failed to retrieve context with error: %v", err)
-			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
-				"error": "Failed to retrieve context",
-			})
-			return
-		}
 
-		global.Logger.Debugf("Decoding context...")
-		err = json.Unmarshal(userinfoCtxBytes, &userinfoCtx)
+		userinfoCtx, err := utils.GetUserinfo(*consentReq.Subject)
 		if err != nil {
-			global.Logger.Errorf("Failed to parse context with error: %v", err)
+			global.Logger.Errorf("Failed to retrieve userinfo with error: %v", err)
 			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
-				"error": "Failed to parse context",
+				"error": "Failed to get userinfo",
 			})
 			return
 		}
@@ -94,7 +81,7 @@ func ConsentCheck(ctx *gin.Context) {
 		// Show the consent UI
 		global.Logger.Debugf("Rendering consent UI...")
 		templateFields := gin.H{
-			"user":      userinfoCtx.User,
+			"user":      *userinfoCtx,
 			"challenge": oauth2challenge,
 			"csrf":      csrf,
 		}

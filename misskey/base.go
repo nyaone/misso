@@ -18,7 +18,7 @@ type Error_Response struct {
 	} `json:"error"`
 }
 
-func PostAPIRequest[T AuthSessionGenerate_Response | AuthSessionUserkey_Response](
+func PostAPIRequest[T I_Response | AuthSessionGenerate_Response | AuthSessionUserkey_Response](
 	apiEndpointPath string, reqBody any,
 ) (*T, error) {
 	// Prepare request

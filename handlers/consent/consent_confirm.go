@@ -2,15 +2,12 @@ package consent
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	client "github.com/ory/hydra-client-go/v2"
 	"misso/consts"
 	"misso/global"
-	"misso/types"
 	"net/http"
-	"time"
 )
 
 type ConsentConfirmRequest struct {
@@ -80,31 +77,9 @@ func ConsentConfirm(ctx *gin.Context) {
 		global.Logger.Debugf("User should now be redirecting to target URI.")
 	} else if req.Action == "accept" {
 		global.Logger.Debugf("User accepted the request, reporting back to hydra...")
-		// Retrieve context
-		global.Logger.Debugf("Retrieving context...")
-		var userinfoCtx types.SessionContext
-		sessKey = fmt.Sprintf(consts.REDIS_KEY_SHARE_CONTEXT, *consentReq.Subject)
-		userinfoCtxBytes, err := global.Redis.Get(context.Background(), sessKey).Bytes()
-		if err != nil {
-			global.Logger.Errorf("Failed to retrieve context with error: %v", err)
-			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
-				"error": "Failed to retrieve context",
-			})
-			return
-		}
-
-		global.Logger.Debugf("Decoding context...")
-		err = json.Unmarshal(userinfoCtxBytes, &userinfoCtx)
-		if err != nil {
-			global.Logger.Errorf("Failed to parse context with error: %v", err)
-			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
-				"error": "Failed to parse context",
-			})
-			return
-		}
 
 		global.Logger.Debugf("Initializing ID Token...")
-		rememberFor := int64(consts.TIME_CONSENT_SESSION_VALID / time.Second)
+		rememberFor := int64(0) // Remember forever
 		acceptReq, _, err := global.Hydra.Admin.OAuth2Api.AcceptOAuth2ConsentRequest(context.Background()).ConsentChallenge(oauth2challenge).AcceptOAuth2ConsentRequest(client.AcceptOAuth2ConsentRequest{
 			GrantScope:               consentReq.RequestedScope, // TODO: Specify scopes
 			GrantAccessTokenAudience: consentReq.RequestedAccessTokenAudience,

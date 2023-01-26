@@ -182,3 +182,5 @@ type MisskeyUser struct {
 	EmailNotificationTypes  []string   `json:"emailNotificationTypes"`
 	ShowTimelineReplies     bool       `json:"showTimelineReplies"`
 }
+
+// TODO: Find a better way to split necessary fields and additional fields

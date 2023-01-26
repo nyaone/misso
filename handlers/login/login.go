@@ -65,9 +65,11 @@ func Login(ctx *gin.Context) {
 			return
 		}
 
+		global.Logger.Debugf("Grabbed auth session: %s", authSess.Token)
+
 		// Save login challenge state into redis (misskey cannot keep state info)
 		sessKey := fmt.Sprintf(consts.REDIS_KEY_LOGIN_SESSION, authSess.Token)
-		err = global.Redis.Set(context.Background(), sessKey, oauth2challenge, consts.TIME_LOGIN_REQUEST_VALID).Err()
+		err = global.Redis.Set(context.Background(), sessKey, oauth2challenge, consts.TIME_REQUEST_VALID).Err()
 		if err != nil {
 			global.Logger.Errorf("Failed to save session into redis with error: %v", err)
 			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{

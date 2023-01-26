@@ -18,6 +18,9 @@ func R(e *gin.Engine) {
 	// Consent
 	Consent(rootGroup)
 
+	// Logout
+	Logout(rootGroup)
+
 	// Userinfo
 	User(rootGroup)
 }

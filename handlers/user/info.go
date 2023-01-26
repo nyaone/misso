@@ -2,12 +2,10 @@ package user
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"misso/consts"
 	"misso/global"
 	"misso/types"
+	"misso/utils"
 	"net/http"
 	"strings"
 )
@@ -46,32 +44,18 @@ func UserInfo(ctx *gin.Context) {
 	}
 
 	// Return user info
-
-	// Retrieve context
 	global.Logger.Debugf("Retrieving context...")
-	var userinfoCtx types.SessionContext
-	sessKey := fmt.Sprintf(consts.REDIS_KEY_SHARE_CONTEXT, *tokenInfo.Sub)
-	userinfoCtxBytes, err := global.Redis.Get(context.Background(), sessKey).Bytes()
+	userinfoCtx, err := utils.GetUserinfo(*tokenInfo.Sub)
 	if err != nil {
-		global.Logger.Errorf("Failed to retrieve context with error: %v", err)
+		global.Logger.Errorf("Failed to retrieve userinfo with error: %v", err)
 		ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
-			"error": "Failed to retrieve context",
-		})
-		return
-	}
-
-	global.Logger.Debugf("Decoding context...")
-	err = json.Unmarshal(userinfoCtxBytes, &userinfoCtx)
-	if err != nil {
-		global.Logger.Errorf("Failed to parse context with error: %v", err)
-		ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
-			"error": "Failed to parse context",
+			"error": "Failed to get userinfo",
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, UserinfoResponse{
-		MisskeyUser: userinfoCtx.User,
+		MisskeyUser: *userinfoCtx,
 		EMail:       *tokenInfo.Sub,
 	})
 
