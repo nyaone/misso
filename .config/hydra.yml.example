@@ -14,11 +14,3 @@ urls:
 secrets:
   system:
     - youReallyNeedToChangeThis
-
-oidc:
-  subject_identifiers:
-    supported_types:
-      - pairwise
-      - public
-    pairwise:
-      salt: youReallyNeedToChangeThis
