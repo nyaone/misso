@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	client "github.com/ory/hydra-client-go/v2"
+	"misso/config"
 	"misso/consts"
 	"misso/global"
 	"misso/utils"
 	"net/http"
+	"time"
 )
 
 func ConsentCheck(ctx *gin.Context) {
@@ -57,7 +59,7 @@ func ConsentCheck(ctx *gin.Context) {
 		global.Logger.Debugf("Generating CSRF token...")
 		csrf := utils.RandString(32)
 		sessKey := fmt.Sprintf(consts.REDIS_KEY_CONSENT_CSRF, oauth2challenge)
-		err := global.Redis.Set(context.Background(), sessKey, csrf, consts.TIME_REQUEST_VALID).Err()
+		err := global.Redis.Set(context.Background(), sessKey, csrf, time.Duration(config.Config.Time.RequestValid)*time.Second).Err()
 		if err != nil {
 			global.Logger.Errorf("Failed to save csrf into redis with error: %v", err)
 			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{

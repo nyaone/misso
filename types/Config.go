@@ -14,4 +14,10 @@ type Config struct {
 	Hydra struct {
 		AdminUrl string `yaml:"admin_url"`
 	} `yaml:"hydra"`
+	Time struct {
+		RequestValid    int64 `yaml:"request_valid"`
+		LoginRemember   int64 `yaml:"login_remember"`
+		ConsentRemember int64 `yaml:"consent_remember"`
+		UserinfoCache   int64 `yaml:"userinfo_cache"`
+	} `yaml:"time"`
 }

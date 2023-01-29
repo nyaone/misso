@@ -10,7 +10,6 @@ import (
 	"misso/global"
 	"misso/misskey"
 	"net/http"
-	"time"
 )
 
 func MisskeyAuthCallback(ctx *gin.Context) {
@@ -75,13 +74,15 @@ func MisskeyAuthCallback(ctx *gin.Context) {
 	}
 
 	global.Logger.Debugf("User accepted the request, reporting back to hydra...")
-	remember := true
-	rememberFor := int64(consts.TIME_LOGIN_REMEMBER / time.Second)
-	acceptReq, _, err := global.Hydra.Admin.OAuth2Api.AcceptOAuth2LoginRequest(context.Background()).LoginChallenge(oauth2challenge).AcceptOAuth2LoginRequest(client.AcceptOAuth2LoginRequest{
-		Subject:     userIdentifier,
-		Remember:    &remember,
-		RememberFor: &rememberFor,
-	}).Execute()
+	acceptReq := client.AcceptOAuth2LoginRequest{
+		Subject: userIdentifier,
+	}
+	if config.Config.Time.LoginRemember > 0 {
+		remember := true
+		acceptReq.Remember = &remember
+		acceptReq.RememberFor = &config.Config.Time.LoginRemember
+	}
+	acceptRes, _, err := global.Hydra.Admin.OAuth2Api.AcceptOAuth2LoginRequest(context.Background()).LoginChallenge(oauth2challenge).AcceptOAuth2LoginRequest(acceptReq).Execute()
 	if err != nil {
 		global.Logger.Errorf("Failed to accept login request with error: %v", err)
 		ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
@@ -91,7 +92,7 @@ func MisskeyAuthCallback(ctx *gin.Context) {
 	}
 
 	// Redirect to target uri
-	ctx.Redirect(http.StatusTemporaryRedirect, acceptReq.RedirectTo)
+	ctx.Redirect(http.StatusTemporaryRedirect, acceptRes.RedirectTo)
 
 	global.Logger.Debugf("User should now be redirecting to target URI.")
 

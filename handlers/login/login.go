@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	client "github.com/ory/hydra-client-go/v2"
+	"misso/config"
 	"misso/consts"
 	"misso/global"
 	"misso/misskey"
 	"net/http"
+	"time"
 )
 
 func Login(ctx *gin.Context) {
@@ -69,7 +71,7 @@ func Login(ctx *gin.Context) {
 
 		// Save login challenge state into redis (misskey cannot keep state info)
 		sessKey := fmt.Sprintf(consts.REDIS_KEY_LOGIN_SESSION, authSess.Token)
-		err = global.Redis.Set(context.Background(), sessKey, oauth2challenge, consts.TIME_REQUEST_VALID).Err()
+		err = global.Redis.Set(context.Background(), sessKey, oauth2challenge, time.Duration(config.Config.Time.RequestValid)*time.Second).Err()
 		if err != nil {
 			global.Logger.Errorf("Failed to save session into redis with error: %v", err)
 			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{

@@ -7,3 +7,8 @@ misskey:
     secret: ""
 hydra:
   admin_url: "http://localhost:4445"
+time:
+  request_valid: 3600
+  login_remember: 600
+  consent_remember: 0
+  userinfo_cache: 3600
