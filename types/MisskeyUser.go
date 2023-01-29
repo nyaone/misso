@@ -5,4 +5,4 @@ type MisskeyUserBase struct {
 	// Ignore other fields
 }
 
-type MisskeyUser = map[string]interface{} // Just raw json map
+type MisskeyUser = map[string]any // Just raw json map
