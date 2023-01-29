@@ -56,8 +56,8 @@ func ConsentCheck(ctx *gin.Context) {
 		// Generate CSRF token
 		global.Logger.Debugf("Generating CSRF token...")
 		csrf := utils.RandString(32)
-		sessKey := fmt.Sprintf(consts.REDIS_KEY_CONSENT_CSRF, csrf)
-		err := global.Redis.Set(context.Background(), sessKey, oauth2challenge, consts.TIME_REQUEST_VALID).Err()
+		sessKey := fmt.Sprintf(consts.REDIS_KEY_CONSENT_CSRF, oauth2challenge)
+		err := global.Redis.Set(context.Background(), sessKey, csrf, consts.TIME_REQUEST_VALID).Err()
 		if err != nil {
 			global.Logger.Errorf("Failed to save csrf into redis with error: %v", err)
 			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
@@ -69,7 +69,7 @@ func ConsentCheck(ctx *gin.Context) {
 		// Retrieve context
 		global.Logger.Debugf("Retrieving context...")
 
-		userinfoCtx, err := utils.GetUserinfo(*consentReq.Subject)
+		userinfo, err := utils.GetUserinfo(*consentReq.Subject)
 		if err != nil {
 			global.Logger.Errorf("Failed to retrieve userinfo with error: %v", err)
 			ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
@@ -81,9 +81,10 @@ func ConsentCheck(ctx *gin.Context) {
 		// Show the consent UI
 		global.Logger.Debugf("Rendering consent UI...")
 		templateFields := gin.H{
-			"user":      *userinfoCtx,
+			"user":      *userinfo,
 			"challenge": oauth2challenge,
 			"csrf":      csrf,
+			"scopes":    consentReq.RequestedScope,
 		}
 
 		if consentReq.Client.LogoUri != nil && *consentReq.Client.LogoUri != "" {
@@ -93,6 +94,12 @@ func ConsentCheck(ctx *gin.Context) {
 			templateFields["clientName"] = *consentReq.Client.ClientName
 		} else {
 			templateFields["clientName"] = *consentReq.Client.ClientId
+		}
+		if consentReq.Client.PolicyUri != nil && *consentReq.Client.PolicyUri != "" {
+			templateFields["clientPolicy"] = *consentReq.Client.PolicyUri
+		}
+		if consentReq.Client.TosUri != nil && *consentReq.Client.TosUri != "" {
+			templateFields["clientTos"] = *consentReq.Client.TosUri
 		}
 		ctx.HTML(http.StatusOK, "consent.tmpl", templateFields)
 

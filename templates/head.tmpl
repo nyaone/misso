@@ -4,7 +4,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #282c34;
+        background-color: #282c34;
     }
 
     #main {
@@ -13,12 +13,23 @@
         text-align: center;
         align-items: center;
         color: white;
-        padding: 40px;
+        padding: 80px 40px 40px 40px;
         background-color: #21252b;
         border-radius: 12px;
         margin: 0 40px;
         width: 100%;
         max-width: 480px;
         word-break: break-word;
+        position: relative;
+    }
+
+    .logo {
+        position: absolute;
+        border: 10px solid #282c34;
+        top: -70px;
+    }
+
+    .logo, .logo > * {
+        border-radius: 120px;
     }
 </style>

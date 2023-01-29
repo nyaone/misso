@@ -13,7 +13,7 @@ import (
 func GetUserinfo(subject string) (*types.MisskeyUser, error) {
 	// Check cache key
 	global.Logger.Debugf("Checking userinfo cache...")
-	userinfoCacheKey := fmt.Sprintf(consts.REDIS_KEY_SHARE_USER_INFO, subject)
+	userinfoCacheKey := fmt.Sprintf(consts.REDIS_KEY_USER_INFO, subject)
 	exist, err := global.Redis.Exists(context.Background(), userinfoCacheKey).Result()
 	if err != nil {
 		global.Logger.Errorf("Failed to check userinfo exist status with error: %v", err)
@@ -38,7 +38,7 @@ func GetUserinfo(subject string) (*types.MisskeyUser, error) {
 
 	// Fallback to get info directly, we need user's access token.
 	global.Logger.Debugf("No cached userinfo found (or valid), trying to get latest response.")
-	accessTokenCacheKey := fmt.Sprintf(consts.REDIS_KEY_SHARE_ACCESS_TOKEN, subject)
+	accessTokenCacheKey := fmt.Sprintf(consts.REDIS_KEY_USER_ACCESS_TOKEN, subject)
 	accessToken, err := global.Redis.Get(context.Background(), accessTokenCacheKey).Result()
 	if err != nil {
 		global.Logger.Errorf("Failed to get user access token with error: %v", err)
@@ -51,6 +51,9 @@ func GetUserinfo(subject string) (*types.MisskeyUser, error) {
 		global.Logger.Errorf("Failed to get user info with saved access token with error: %v", err)
 		return nil, err
 	}
+
+	// Append subject as email to userinfo
+	(*userinfo)["email"] = subject
 
 	// Save userinfo into redis
 	_ = SaveUserinfo(subject, userinfo) // Ignore errors

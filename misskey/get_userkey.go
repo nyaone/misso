@@ -11,8 +11,8 @@ type AuthSessionUserkey_Request struct {
 }
 
 type AuthSessionUserkey_Response struct {
-	AccessToken string            `json:"accessToken"`
-	User        types.MisskeyUser `json:"user"`
+	AccessToken string                `json:"accessToken"`
+	User        types.MisskeyUserBase `json:"user"`
 }
 
 func GetUserkey(token string) (*AuthSessionUserkey_Response, error) {

@@ -4,16 +4,10 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"misso/global"
-	"misso/types"
 	"misso/utils"
 	"net/http"
 	"strings"
 )
-
-type UserinfoResponse struct {
-	types.MisskeyUser
-	EMail string `json:"email"`
-}
 
 func UserInfo(ctx *gin.Context) {
 	// Get token from header
@@ -45,7 +39,7 @@ func UserInfo(ctx *gin.Context) {
 
 	// Return user info
 	global.Logger.Debugf("Retrieving context...")
-	userinfoCtx, err := utils.GetUserinfo(*tokenInfo.Sub)
+	userinfo, err := utils.GetUserinfo(*tokenInfo.Sub)
 	if err != nil {
 		global.Logger.Errorf("Failed to retrieve userinfo with error: %v", err)
 		ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
@@ -54,9 +48,19 @@ func UserInfo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, UserinfoResponse{
-		MisskeyUser: *userinfoCtx,
-		EMail:       *tokenInfo.Sub,
-	})
+	userinfoRes := gin.H{} // map[string]interface{}
+
+	// Get scopes
+	if tokenInfo.Scope != nil && *tokenInfo.Scope != "" {
+		// Has scopes
+		scopes := strings.Split(*tokenInfo.Scope, " ")
+		for _, s := range scopes {
+			if value, ok := (*userinfo)[s]; ok {
+				userinfoRes[s] = value
+			}
+		}
+	}
+
+	ctx.JSON(http.StatusOK, userinfoRes)
 
 }

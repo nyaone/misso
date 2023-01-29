@@ -12,9 +12,10 @@ import (
 )
 
 type ConsentConfirmRequest struct {
-	CSRF     string `form:"_csrf"`
-	Remember bool   `form:"remember"`
-	Action   string `form:"action"`
+	CSRF      string `form:"_csrf"`
+	Challenge string `form:"challenge"`
+	Remember  bool   `form:"remember"`
+	Action    string `form:"action"`
 }
 
 func ConsentConfirm(ctx *gin.Context) {
@@ -32,15 +33,22 @@ func ConsentConfirm(ctx *gin.Context) {
 
 	// Validate CSRF
 	global.Logger.Debugf("Validating CSRF...")
-	sessKey := fmt.Sprintf(consts.REDIS_KEY_CONSENT_CSRF, req.CSRF)
-	oauth2challenge, err := global.Redis.Get(context.Background(), sessKey).Result()
+	sessKey := fmt.Sprintf(consts.REDIS_KEY_CONSENT_CSRF, req.Challenge)
+	csrfSession, err := global.Redis.Get(context.Background(), sessKey).Result()
 	if err != nil {
 		global.Logger.Errorf("Failed to get csrf from redis with error: %v", err)
 		ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
 			"error": "Failed to get csrf",
 		})
 		return
+	} else if csrfSession != req.CSRF {
+		ctx.HTML(http.StatusForbidden, "error.tmpl", gin.H{
+			"error": "CSRF not match",
+		})
+		return
 	}
+
+	oauth2challenge := req.Challenge
 
 	// Delete used challenge
 	global.Redis.Del(context.Background(), sessKey)

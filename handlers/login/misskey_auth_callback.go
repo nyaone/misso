@@ -9,7 +9,6 @@ import (
 	"misso/consts"
 	"misso/global"
 	"misso/misskey"
-	"misso/utils"
 	"net/http"
 	"time"
 )
@@ -62,9 +61,10 @@ func MisskeyAuthCallback(ctx *gin.Context) {
 		return
 	}
 
-	userid := fmt.Sprintf("%s@%s", usermeta.User.Username, config.Config.Misskey.Instance)
+	// Save user key
+	userIdentifier := fmt.Sprintf("%s@%s", usermeta.User.Username, config.Config.Misskey.Instance)
 
-	sessAccessTokenKey := fmt.Sprintf(consts.REDIS_KEY_SHARE_ACCESS_TOKEN, userid)
+	sessAccessTokenKey := fmt.Sprintf(consts.REDIS_KEY_USER_ACCESS_TOKEN, userIdentifier)
 	err = global.Redis.Set(context.Background(), sessAccessTokenKey, usermeta.AccessToken, 0).Err()
 	if err != nil {
 		global.Logger.Errorf("Failed to save session access token into redis with error: %v", err)
@@ -74,21 +74,11 @@ func MisskeyAuthCallback(ctx *gin.Context) {
 		return
 	}
 
-	// Save context into redis
-	err = utils.SaveUserinfo(userid, &usermeta.User)
-	if err != nil {
-		global.Logger.Errorf("Failed to save session user info into redis with error: %v", err)
-		ctx.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{
-			"error": "Failed to save userinfo",
-		})
-		return
-	}
-
 	global.Logger.Debugf("User accepted the request, reporting back to hydra...")
 	remember := true
 	rememberFor := int64(consts.TIME_LOGIN_REMEMBER / time.Second)
 	acceptReq, _, err := global.Hydra.Admin.OAuth2Api.AcceptOAuth2LoginRequest(context.Background()).LoginChallenge(oauth2challenge).AcceptOAuth2LoginRequest(client.AcceptOAuth2LoginRequest{
-		Subject:     userid,
+		Subject:     userIdentifier,
 		Remember:    &remember,
 		RememberFor: &rememberFor,
 	}).Execute()
