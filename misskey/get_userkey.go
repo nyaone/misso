@@ -17,7 +17,7 @@ type AuthSessionUserkey_Response struct {
 
 func GetUserkey(token string) (*AuthSessionUserkey_Response, error) {
 
-	return PostAPIRequest[AuthSessionUserkey_Response]("/api/auth/session/userkey", &AuthSessionUserkey_Request{
+	return PostAPIRequest[AuthSessionUserkey_Response]("auth/session/userkey", &AuthSessionUserkey_Request{
 		AppSecret: config.Config.Misskey.Application.Secret,
 		Token:     token,
 	})

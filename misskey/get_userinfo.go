@@ -9,7 +9,7 @@ type I_Request struct {
 type I_Response = types.MisskeyUser
 
 func GetUserinfo(accessToken string) (*I_Response, error) {
-	return PostAPIRequest[I_Response]("/api/i", &I_Request{
+	return PostAPIRequest[I_Response]("i", &I_Request{
 		I: accessToken,
 	})
 }

@@ -22,7 +22,7 @@ func PostAPIRequest[T I_Response | AuthSessionGenerate_Response | AuthSessionUse
 	apiEndpointPath string, reqBody any,
 ) (*T, error) {
 	// Prepare request
-	apiEndpoint := fmt.Sprintf("https://%s%s", config.Config.Misskey.Instance, apiEndpointPath)
+	apiEndpoint := fmt.Sprintf("https://%s/api/%s", config.Config.Misskey.Instance, apiEndpointPath)
 
 	reqBodyBytes, err := json.Marshal(reqBody)
 	if err != nil {

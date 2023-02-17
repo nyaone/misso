@@ -13,7 +13,7 @@ type AuthSessionGenerate_Response struct {
 
 func GenerateAuthSession() (*AuthSessionGenerate_Response, error) {
 
-	return PostAPIRequest[AuthSessionGenerate_Response]("/api/auth/session/generate", &AuthSessionGenerate_Request{
+	return PostAPIRequest[AuthSessionGenerate_Response]("auth/session/generate", &AuthSessionGenerate_Request{
 		AppSecret: config.Config.Misskey.Application.Secret,
 	})
 
