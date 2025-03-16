@@ -3,8 +3,7 @@ version: "3.7"
 services:
 
   app:
-    image: ncr.pub/nyaone/misso:latest
-    #build: .
+    build: .
     restart: always
     depends_on:
       - db
